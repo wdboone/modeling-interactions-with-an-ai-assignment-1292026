@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interaction Modeling: Boone vs. AI</title>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #2d3436;
+            --accent-orange: #e67e22; /* User Prompts */
+            --accent-blue: #0984e3;   /* AI Responses */
+            --accent-purple: #6c5ce7; /* Logic/Context */
+            --accent-green: #00b894;  /* Proactive Steps */
+            --card-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --claude-bg: #fff5eb; /* Light Orange Tint */
+            --gemini-bg: #f0f3ff; /* Light Blue Tint */
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- Header Section --- */
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            border-bottom: 2px solid #dfe6e9;
+            padding-bottom: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        h1 { font-size: 2.5rem; margin-bottom: 10px; color: #2d3436; }
+        .meta-data { display: flex; justify-content: center; gap: 30px; font-size: 1.1rem; color: #636e72; }
+        .meta-tag { font-weight: 600; color: var(--text-color); }
+
+        /* --- Main Container --- */
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        /* --- Common Card Styles --- */
+        .model-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .model-card:hover { transform: translateY(-5px); }
+        .model-header { font-size: 1.8rem; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        
+        /* --- Left Column: The "Reactive" Model (Claude) --- */
+        .claude-model { border-top: 8px solid var(--accent-orange); background: linear-gradient(to bottom, #fff, #fffbf7); }
+        .claude-header { color: var(--accent-orange); }
+
+        /* The Vertical Stack Visual */
+        .vertical-flow { display: flex; flex-direction: column; align-items: center; gap: 15px; position: relative; }
+        
+        .flow-node {
+            padding: 15px 25px;
+            border-radius: 8px;
+            width: 80%;
+            text-align: center;
+            font-weight: 500;
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .node-prompt { background-color: #ffeaa7; border-color: #fdcb6e; color: #d35400; }
+        .node-if { border: 2px dashed #fab1a0; background-color: #fff; color: #e17055; font-style: italic; }
+        .node-response { background-color: #74b9ff; color: #003666; opacity: 0.8; }
+        
+        .arrow-down { font-size: 1.5rem; color: #b2bec3; }
+
+        /* --- Right Column: The "Strategic" Model (Gemini) --- */
+        .gemini-model { border-top: 8px solid var(--accent-purple); background: linear-gradient(to bottom, #fff, #f4f6ff); }
+        .gemini-header { color: var(--accent-purple); }
+
+        /* The Horizontal Engine Visual */
+        .engine-wrapper { display: flex; flex-direction: column; gap: 20px; }
+        .engine-row { display: flex; align-items: center; gap: 15px; }
+
+        .gemini-node {
+            padding: 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 80px;
+        }
+
+        .g-input { background: #ffeaa7; border-left: 5px solid var(--accent-orange); }
+        .g-process { 
+            background: #a29bfe; 
+            color: white; 
+            position: relative; 
+            overflow: visible;
+        }
+        .g-process::after {
+            content: "⚙️ Synthesis";
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            background: #6c5ce7;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        .g-output { background: #74b9ff; color: #002b4d; border-right: 5px solid var(--accent-blue); }
+        .g-proactive { background: #55efc4; color: #004d40; margin-top: 10px; border: 2px solid #00b894; text-align: center; }
+
+        .context-tag {
+            font-size: 0.75rem;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+
+        /* --- Annotation & Citation Styles --- */
+        .citation {
+            font-size: 0.7rem;
+            color: #636e72;
+            margin-top: 5px;
+            display: block;
+            text-align: right;
+            font-style: italic;
+        }
+
+        .analysis-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0,0,0,0.03);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .vs-badge {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: #2d3436;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            z-index: 10;
+            box-shadow: 0 0 0 10px var(--bg-color);
+        }
+
+        /* --- Footer / Print --- */
+        .footer-controls { margin-top: 40px; text-align: center; }
+        button {
+            background: var(--text-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background: var(--accent-blue); }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .comparison-container { gap: 20px; }
+            .model-card { box-shadow: none; border: 1px solid #ccc; }
+            .footer-controls { display: none; }
+            .vs-badge { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Modeling Interactions with an AI</h1>
+        <div class="meta-data">
+            [cite_start]<span>Name: <span class="meta-tag">Willie Boone [cite: 1]</span></span>
+            <span>Professor: <span class="meta-tag">Dr. [cite_start]Steven Nordstrom [cite: 2]</span></span>
+            [cite_start]<span>Course: <span class="meta-tag">AI Interfaces [cite: 3]</span></span>
+            [cite_start]<span>Date: <span class="meta-tag">January 29, 2026 [cite: 4]</span></span>
+        </div>
+    </header>
+
+    <div class="comparison-container">
+        
+        <div class="vs-badge">VS</div>
+
+        <div class="model-card claude-model">
+            <div class="model-header">
+                <span class="claude-header">The Reactive Model</span>
+                <span style="font-size: 0.8rem; font-weight: normal; color:#888;">(Based on Assignment Doc)</span>
+            </div>
+
+            <div class="vertical-flow">
+                <div class="flow-node node-prompt">
+                    <strong>PROMPT A:</strong><br>
+                    "What will it take for students to exit the ELD program?"
+                    [cite_start]<span class="citation">[cite: 9]</span>
+                </div>
+                
+                <div class="arrow-down">↓</div>
+
+                <div class="flow-node node-if">
+                    <strong>IF Question:</strong><br>
+                    "Does your district require criteria beyond Level 4?"
+                    [cite_start]<span class="citation">[cite: 9]</span>
+                </div>
+
+                <div class="arrow-down">↓</div>
+
+                <div class="flow-node node-response">
+                    <strong>RESPONSE A:</strong><br>
+                    "Must achieve proficiency Level 4 in all domains..."
+                    [cite_start]<span class="citation">[cite: 9]</span>
+                </div>
+
+                <div class="arrow-down">↓</div>
+
+                <div class="flow-node node-if">
+                    <strong>IF Question:</strong><br>
+                    "Are you asking about a specific student...?"
+                    [cite_start]<span class="citation">[cite: 9]</span>
+                </div>
+            </div>
+
+            <div class="analysis-box">
+                <strong>Analysis:</strong> The "Reactive" model treats every prompt as an isolated event. [cite_start]It pauses specifically to ask "IF" questions [cite: 9, 10, 11] before providing the full value, creating friction for a busy teacher.
+            </div>
+        </div>
+
+        <div class="model-card gemini-model">
+            <div class="model-header">
+                <span class="gemini-header">The Strategic Partner Model</span>
+                <span style="font-size: 0.8rem; font-weight: normal; color:#888;">(The Twist)</span>
+            </div>
+
+            <div class="engine-wrapper">
+                
+                <div class="engine-row">
+                    <div class="gemini-node g-input">
+                        <strong>User Intent</strong>
+                        <span style="font-size: 0.85rem;">"How do I help students exit the program?"</span>
+                    </div>
+                    
+                    <div style="font-size: 1.5rem; color: #a29bfe;">➜</div>
+
+                    <div class="gemini-node g-process">
+                        <strong>Context Engine</strong>
+                        <span class="context-tag">TN ELPA21 Rules</span>
+                        [cite_start]<span class="context-tag">1:80 Ratio [cite: 11]</span>
+                        [cite_start]<span class="context-tag">High School Setting [cite: 12]</span>
+                    </div>
+                </div>
+
+                <div class="engine-row">
+                    <div style="width: 20px;"></div> <div style="font-size: 1.5rem; color: #a29bfe; transform: rotate(90deg);">➜</div>
+                </div>
+
+                <div class="gemini-node g-output">
+                    <strong>Strategic Response (Multi-Modal)</strong>
+                    <ul style="margin: 5px 0 0 20px; font-size: 0.85rem; padding: 0;">
+                        <li><strong>The Law:</strong> Level 4 is mandatory.</li>
+                        <li><strong>The Strategy:</strong> Ignore "Listening"; Focus on "Writing".</li>
+                        <li><strong>The Contingency:</strong> "If you have tech, do X; if not, do Y."</li>
+                    </ul>
+                </div>
+
+                <div class="gemini-node g-proactive">
+                    <strong>Proactive Offer (Agentic)</strong><br>
+                    "I can generate a 6-week 'Writing Intensive' schedule for your Level 3 students right now."
+                </div>
+
+            </div>
+
+            <div class="analysis-box">
+                <strong>Analysis:</strong> The "Strategic" model infers context (e.g., specific TN State Rules) instead of asking for it. It provides a menu of options ("If X, do Y") in a single turn, respecting the user's expertise.
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer-controls">
+        <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+        <p style="margin-top: 15px; font-size: 0.9rem; color: #888;">
+            [cite_start]Sources: [cite: 1-22] Willie Boone Modeling Interactions with an AI 1 29 2026.docx
+        </p>
+    </div>
+
+</body>
+</html>
